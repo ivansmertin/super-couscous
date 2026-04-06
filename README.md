@@ -1,0 +1,100 @@
+# Telegram Lead Bot (aiogram 3 + SQLite)
+
+Простой production-ready Telegram lead-бот для бизнеса.
+
+## Что делает бот
+- Пользователь пишет в бота вопрос/заявку.
+- Бот пересылает сообщение администратору с метаданными (имя, username, Telegram ID, тип сообщения).
+- Администратор отвечает **Reply** на пересланное сообщение в Telegram.
+- Бот отправляет этот ответ обратно нужному пользователю.
+- Личные данные администратора пользователю не раскрываются.
+
+## Финальный стек
+- Python 3.12
+- aiogram 3 (long polling)
+- SQLite
+- SQLAlchemy
+- python-dotenv
+- systemd (для Ubuntu VPS)
+
+## Переменные окружения (.env)
+Используются только эти переменные:
+
+```env
+BOT_TOKEN=
+ADMIN_TELEGRAM_ID=
+SQLITE_PATH=./data/bot.db
+LOG_LEVEL=INFO
+```
+
+`ADMIN_TELEGRAM_ID` нужно получить заранее через внешний helper-бот/сервис, который показывает **числовой Telegram user ID**.
+
+## Локальный запуск
+```bash
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# заполните .env
+python -m app.main
+```
+
+Точная команда запуска локально:
+```bash
+python -m app.main
+```
+
+## Деплой на Ubuntu VPS
+1. Загрузите проект на сервер.
+2. Создайте `.env` по примеру.
+3. Отредактируйте `deploy/lead-bot.service`.
+4. Установите unit-файл в systemd и включите сервис.
+
+### В `deploy/lead-bot.service` на реальном сервере ОБЯЗАТЕЛЬНО изменить:
+- `User=`
+- `WorkingDirectory=`
+- `EnvironmentFile=`
+- `ExecStart=`
+
+## Команды обновления на сервере
+```bash
+git pull
+source venv/bin/activate
+pip install -r requirements.txt
+sudo systemctl daemon-reload
+sudo systemctl restart lead-bot
+sudo systemctl status lead-bot
+journalctl -u lead-bot -n 100 --no-pager
+```
+
+## Быстрый скрипт деплоя
+```bash
+./scripts/deploy.sh
+```
+
+## Команды бота
+### Для пользователя
+- `/start` — приветствие
+- `/help` — как пользоваться
+
+### Для администратора
+- `/id`
+- `/users`
+- `/broadcast <text>`
+
+Для не-админа admin-команды отвечают:
+`Эта команда доступна только администратору.`
+
+## Smoke-test checklist
+1. Пользователь отправляет `/start` и получает приветствие на русском.
+2. Пользователь отправляет текст/фото/документ/voice (и при возможности video note/sticker).
+3. Админ получает метаданные и копию сообщения.
+4. Админ делает Reply на пересланное сообщение — пользователь получает ответ.
+5. Reply на неподдерживаемое/чужое сообщение даёт понятную ошибку только админу.
+6. `/id`, `/users`, `/broadcast` работают только для админа.
+7. Подтверждение пользователю не спамится на каждое сообщение.
+8. База SQLite создаётся автоматически при запуске.
+
+## CTA (RU)
+Оставляйте заявки и задавайте вопросы в боте: @MY_BOT_USERNAME  
+Переписка конфиденциальна.

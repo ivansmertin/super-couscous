@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Lead Bot (aiogram long polling)
+After=network.target
+
+[Service]
+Type=simple
+User=CHANGE_ME
+WorkingDirectory=/path/to/super-couscous
+EnvironmentFile=/path/to/super-couscous/.env
+ExecStart=/path/to/super-couscous/venv/bin/python -m app.main
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
