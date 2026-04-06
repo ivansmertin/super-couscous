@@ -1,12 +1,20 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.db.models import AdminRelayMap, InboundMessage, User
+
+
+@dataclass(slots=True)
+class DialogSummary:
+    total_messages: int
+    last_message_at: datetime | None
+    last_message_type: str | None
 
 
 class Storage:
@@ -98,3 +106,42 @@ class Storage:
         with self._session_factory() as session:
             rows = session.scalars(select(User.telegram_id)).all()
             return list(rows)
+
+    def count_dialogs(self) -> int:
+        return self.count_users()
+
+    def list_recent_dialogs(self, limit: int, offset: int = 0) -> list[User]:
+        with self._session_factory() as session:
+            stmt = (
+                select(User)
+                .order_by(User.last_seen_at.desc(), User.telegram_id.desc())
+                .limit(limit)
+                .offset(offset)
+            )
+            return list(session.scalars(stmt).all())
+
+    def get_user_by_telegram_id(self, telegram_id: int) -> User | None:
+        with self._session_factory() as session:
+            return session.get(User, telegram_id)
+
+    def get_dialog_summary(self, telegram_user_id: int) -> DialogSummary:
+        with self._session_factory() as session:
+            summary_stmt = select(
+                func.count(InboundMessage.id),
+                func.max(InboundMessage.created_at),
+            ).where(InboundMessage.telegram_user_id == telegram_user_id)
+            total_messages, last_message_at = session.execute(summary_stmt).one()
+
+            last_type_stmt = (
+                select(InboundMessage.message_type)
+                .where(InboundMessage.telegram_user_id == telegram_user_id)
+                .order_by(InboundMessage.created_at.desc(), InboundMessage.id.desc())
+                .limit(1)
+            )
+            last_message_type = session.execute(last_type_stmt).scalar_one_or_none()
+
+            return DialogSummary(
+                total_messages=int(total_messages or 0),
+                last_message_at=last_message_at,
+                last_message_type=last_message_type,
+            )

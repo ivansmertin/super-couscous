@@ -25,7 +25,7 @@ HELP_TEXT = (
 )
 
 CONFIRMATION_TEXT = "Сообщение отправлено. Я получил его и отвечу вам здесь."
-KNOWN_COMMANDS = {"/start", "/help", "/id", "/users", "/broadcast"}
+KNOWN_COMMANDS = {"/start", "/help", "/id", "/users", "/broadcast", "/dialogs", "/cancel"}
 UNKNOWN_COMMAND_TEXT = "Команда не найдена. Используйте /help."
 
 
@@ -40,7 +40,7 @@ async def cmd_start(message: Message, admin_id: int) -> None:
 @router.message(Command("help"))
 async def cmd_help(message: Message, admin_id: int) -> None:
     if message.from_user and message.from_user.id == admin_id:
-        await message.answer("Команды администратора: /id, /users, /broadcast <текст>")
+        await message.answer("Команды администратора: /id, /users, /dialogs, /broadcast <текст>, /cancel")
         return
     await message.answer(HELP_TEXT)
 
