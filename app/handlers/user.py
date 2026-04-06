@@ -25,6 +25,8 @@ HELP_TEXT = (
 )
 
 CONFIRMATION_TEXT = "Сообщение отправлено. Я получил его и отвечу вам здесь."
+KNOWN_COMMANDS = {"/start", "/help", "/id", "/users", "/broadcast"}
+UNKNOWN_COMMAND_TEXT = "Команда не найдена. Используйте /help."
 
 
 @router.message(Command("start"))
@@ -57,6 +59,11 @@ async def relay_user_message(
         return
 
     if message.text and message.text.startswith("/"):
+        command = message.text.split(maxsplit=1)[0].lower()
+        command = command.split("@", maxsplit=1)[0]
+        if command in KNOWN_COMMANDS:
+            return
+        await message.answer(UNKNOWN_COMMAND_TEXT)
         return
 
     user = message.from_user

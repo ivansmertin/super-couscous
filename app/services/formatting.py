@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-from html import escape
-
 from aiogram.types import User as TgUser
 
 
 def safe_name(user: TgUser) -> str:
-    return escape(user.full_name)
+    return user.full_name
 
 
 def safe_username(user: TgUser) -> str:
     if user.username:
-        return f"@{escape(user.username)}"
+        return f"@{user.username}"
     return "(нет username)"
 
 
