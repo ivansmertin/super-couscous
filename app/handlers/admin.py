@@ -23,7 +23,8 @@ async def cmd_id(message: Message, admin_id: int) -> None:
     if not is_admin(message, admin_id):
         await message.answer(ADMIN_ONLY_TEXT)
         return
-    await message.answer(f"Ваш Telegram ID: {admin_id}")
+    user_id = message.from_user.id if message.from_user else admin_id
+    await message.answer(f"chat_id={message.chat.id}\nuser_id={user_id}")
 
 
 @router.message(Command("users"))
